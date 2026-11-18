@@ -10,17 +10,25 @@ export default function App() {
   const [token, setToken] = useState(readToken);
   const [audience, setAudience] = useState(null);
   const [screen, setScreen] = useState("home");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [workspace, setWorkspace] = useState(false);
 
   useEffect(() => {
     if (!token) {
-      setIsAdmin(false);
+      setRoles([]);
+      setWorkspace(false);
       return;
     }
 
     apiRequest("/api/providers/access")
-      .then((data) => setIsAdmin(Boolean(data.admin)))
-      .catch(() => setIsAdmin(false));
+      .then((data) => {
+        setRoles(data.roles || []);
+        setWorkspace(Boolean(data.workspace));
+      })
+      .catch(() => {
+        setRoles([]);
+        setWorkspace(false);
+      });
   }, [token]);
 
   const goHome = () => setScreen("home");
@@ -57,8 +65,8 @@ export default function App() {
     );
   }
 
-  if (isAdmin) {
-    return <AdminPage onHome={goHome} onLogOut={logOut} />;
+  if (workspace) {
+    return <AdminPage roles={roles} onHome={goHome} onLogOut={logOut} />;
   }
 
   if (audience === "provider") {
