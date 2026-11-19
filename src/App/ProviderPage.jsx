@@ -12,6 +12,8 @@ export default function ProviderPage({ onHome, onLogOut }) {
   const [activities, setActivities] = useState([]);
   const [activityTitle, setActivityTitle] = useState("");
   const [activityFormat, setActivityFormat] = useState("IN_PERSON");
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
   const [activitySummary, setActivitySummary] = useState("");
   const [minimumAge, setMinimumAge] = useState("");
   const [maximumAge, setMaximumAge] = useState("");
@@ -24,6 +26,9 @@ export default function ProviderPage({ onHome, onLogOut }) {
     apiRequest("/api/providers/mine")
       .then((data) => setApplications(data.providers || []))
       .catch((requestError) => setError(requestError.message));
+    apiRequest("/api/activities/categories")
+      .then((data) => setCategories(data.categories || []))
+      .catch(() => setCategories([]));
     apiRequest("/api/activities/mine")
       .then((data) => setActivities(data.activities || []))
       .catch(() => setActivities([]));
@@ -77,6 +82,7 @@ export default function ProviderPage({ onHome, onLogOut }) {
           title: activityTitle,
           short_description: activitySummary,
           activity_format: activityFormat,
+          category_id: categoryId,
           minimum_age_months: minimumAge,
           maximum_age_months: maximumAge,
           is_free: isFree,
@@ -192,6 +198,21 @@ export default function ProviderPage({ onHome, onLogOut }) {
             </select>
           </label>
           <label>
+            Category
+            <select
+              value={categoryId}
+              onChange={(event) => setCategoryId(event.target.value)}
+              required
+            >
+              <option value="">Choose a category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.category_name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
             Short description
             <input
               value={activitySummary}
@@ -236,6 +257,25 @@ export default function ProviderPage({ onHome, onLogOut }) {
         {activities.map((activity) => (
           <li key={activity.id}>
             {String(activity.title || "").toUpperCase()} ({activity.publication_status})
+            <select
+              defaultValue=""
+              onChange={(event) => {
+                if (!event.target.value) return;
+                apiRequest(`/api/activities/${activity.id}/category`, {
+                  method: "PATCH",
+                  body: JSON.stringify({ category_id: Number(event.target.value) }),
+                })
+                  .then(() => setMessage("Category saved."))
+                  .catch((requestError) => setError(requestError.message));
+              }}
+            >
+              <option value="">Set category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.category_name}
+                </option>
+              ))}
+            </select>
           </li>
         ))}
       </ul>

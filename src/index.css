@@ -83,7 +83,18 @@ button {
 }
 
 nav {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+nav.categories {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+nav.categories button {
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 8px;
+  white-space: normal;
 }
 
 button + button,
